@@ -663,7 +663,7 @@ class Experiment(object):
 
             # init image objects
             # image = Image.new("RGBA", (width,height), (255,255,255))
-            image = Image.new(mode = "L", size = (width, height), color = 1.0)
+            image = Image.new(mode = "L", size = (width, height), color = 1)
             draw = ImageDraw.Draw(image)
             # font = ImageFont.truetype("/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf", fontsize)
             font_normal = ImageFont.truetype("DejaVuSans.ttf", fontsize)

@@ -10,4 +10,4 @@ __all__ = [
 # FIXME: deal with essentia on/off switch here?
 # 'block_meas_essentia',    
 
-from smp_graphs import *
+# from smp_graphs import *
