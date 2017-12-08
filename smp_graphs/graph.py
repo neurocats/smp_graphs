@@ -594,7 +594,7 @@ def nxgraph_plot(G, ax = None, pos = None, layout_type = "spring", node_color = 
     # print "labels = %s" % labels
 
     # draw the nodes of 'G' into axis 'ax' using positions 'layout' etc
-    nx.draw_networkx_nodes(G, ax = ax, pos = layout, node_color = node_color, node_shape = node_shape, node_size = node_size / x_max, alpha = 0.5)
+    nx.draw_networkx_nodes(G, ax = ax, pos = layout, node_color = node_color, node_shape = node_shape, node_size = node_size / max(1, x_max), alpha = 0.5)
 
     # # global shift?
     # shift(layout, (0, -2 * node_size))
