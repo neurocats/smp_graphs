@@ -340,7 +340,7 @@ def log_pd_dump_config(h5store, storekey = None):
     try:
         ret = store.get_storer(storekey).attrs.conf
     except AttributeError:
-        print "key %s doesn't exist" % (storekey)
+        print("key %s doesn't exist" % (storekey))
         ret = None
     store.close()
     return ret

@@ -72,7 +72,7 @@ logger = get_module_logger(modulename = 'graph', loglevel = loglevel_DEFAULT)
 def nxgraph_nodes_iter_recursive(G, filt = None, data = False, level = 0, iterfunc = None):
     if iterfunc is None:
         def iterfunc(node, data, level):
-            print "node = %s, data = %s, level = %d" % (node, data, level)
+            print("node = %s, data = %s, level = %d" % (node, data, level))
             return level
 
     r = []
@@ -281,7 +281,7 @@ def nxgraph_get_layout(G, layout_type):
             else:
                 s1.append(node)
                 
-        print "s1", s1, "s2", s2
+        print("s1", s1, "s2", s2)
         layout = nx.shell_layout(G, [s1, s2])
     elif layout_type == "pygraphviz":
         # pygraphviz
@@ -307,7 +307,7 @@ def nxgraph_get_layout(G, layout_type):
         y_ = -1
         snodes = G.nodes()
         snodes.sort()
-        print "snodes", snodes
+        print("snodes", snodes)
         for node in snodes:
             lvl = int(node[1:2])
             lvln[node] = lvl
@@ -327,7 +327,7 @@ def nxgraph_get_layout(G, layout_type):
             
             # start each level's y at parent's y
             if not lvly.has_key(lvl): # new level, search parent
-                print "lvl %d first = %s" % (lvl, node)
+                print("lvl %d first = %s" % (lvl, node))
                 
                 # parentnode = None
                 # # # assume edge
@@ -377,7 +377,7 @@ def nxgraph_flatten(G):
     # for node in G.nodes():
     for node in nxgraph_nodes_iter(G, 'enable'):
         if hasattr(G.node[node]['block_'], 'nxgraph'):
-            # print "nxgraph_flatten: descending + 1"
+            # print("nxgraph_flatten: descending + 1")
             G_ = nx.compose(G_, nxgraph_flatten(G.node[node]['block_'].nxgraph))
 
     # bottom level
@@ -791,7 +791,7 @@ def nxgraph_strip(G):
     G_ = type(G)()
     
     for n in G.nodes(data = False):
-        print "n", n
+        print("n", n)
         # node_ = type(G.node[n])()
         node_ = conf_strip_variables(G.node[n], omits = [])
         # print "node_", node_
@@ -811,7 +811,7 @@ def nxgraph_strip(G):
         # print "G_.node[n]", G_.node[n]
         
     for e_ in G.edges(data = True):
-        print "e", e_
+        print("e", e_)
         e = (e_[0], e_[1])
         # avoid to reintroduce skipped nodes
         if len(G_.node[e[0]]) > 0 and len(G_.node[e[1]]) > 0:
@@ -861,15 +861,16 @@ def nxgraph_store(conf = None, G = None):
       "nxgraph_store bad_argument: needs valid configuration dict 'conf' with 'datadir', 'datadir_expr', and 'datafile_expr' entries"
     assert G is not None, "nxgraph_store bad_argument: needs a graph G to store"
     # graph_io = {(k, {'read': graph_io_funcs[k]['read'], 'read': graph_io_funcs[k]['write']}) for i, k in enumerate(graph_io_funcs.keys())}
-    print "nxgraph_store graph_io_funcs = %s" % (graph_io_funcs, )
+    print("nxgraph_store graph_io_funcs = %s" % (graph_io_funcs, ))
     graph_filetype = 'pickle' # 'gml' # , 'json', 'yaml'
     graph_filename = '%s_%s.%s' % (conf['datafile_md5'], 'nxgraph', graph_filetype)
 
     def iterfunc(node, data, level):
         levelspace = " " * 4 * level
         # print "%snode = %s, data = %s" % (" " * 4 * level, node.keys(), data.keys())
-        print "%snode = %s" % (levelspace, node.keys(), ),
-        print " block_.id = %s, params['id'] = %s" % (node['block_'].id, node['params']['id'])
+        print("%snode = %s" % (levelspace, node.keys(), ))
+        print(" block_.id = %s, params['id'] = %s" % (node['block_'].id,
+                                                      node['params']['id']))
         # for k, v in node['block_'].items():
         #     print "%s    k = %s, v = %s" % (levelspace, k, v)
         return node['params']['id']

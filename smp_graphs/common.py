@@ -118,7 +118,7 @@ def compose(*functions):
 class RewriteDict(ast.NodeTransformer):
 
     def visit_Dict(self, node):
-        print "node dict", node, dir(node)
+        print("node dict", node, dir(node))
         # return ast.copy_location(ast.Subscript(
         #     value=ast.Name(id='data', ctx=ast.Load()),
         #     slice=ast.Index(value=ast.Str(s=node.id)),
@@ -129,9 +129,9 @@ class RewriteName(ast.NodeTransformer):
 
     def visit_Name(self, node):
         if node.id == 'lconf':
-            print "node name", node.id, node.ctx # dir(node)
+            print("node name", node.id, node.ctx) # dir(node)
             if isinstance(node.ctx, ast.Store):
-                print "hu store", ast.parse(node.ctx)
+                print("hu store", ast.parse(node.ctx))
         # return ast.copy_location(ast.Subscript(
         #     value=ast.Name(id='data', ctx=ast.Load()),
         #     slice=ast.Index(value=ast.Str(s=node.id)),
@@ -200,8 +200,8 @@ def get_config_raw(conf, confvar = 'conf', lconf = None, fexec = True):
     # open and read config file containing a python dictionary
     try:
         s_ = open(conf, "r").read()
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
         sys.exit(1)
 
     # compile and evaluate the dictionary code string and return the dict object
@@ -269,9 +269,10 @@ def get_config_raw_from_string(conf, confvar = 'conf', lconf = None):
         # print "code.freevars", code.co_freevars
         # print "code.nlocals", code.co_nlocals
         
-    except Exception, e:
-        print "\n%s" % (e.text)
-        print "Compilation of %s failed with %s in %s at line %d" % (conf, e.msg, e.filename, e.lineno)
+    except Exception as e:
+        print("\n%s" % (e.text))
+        print("Compilation of %s failed with %s in %s at line %d" %
+              (conf, e.msg, e.filename, e.lineno))
         sys.exit(1)
 
     # prepare variables
@@ -287,12 +288,13 @@ def get_config_raw_from_string(conf, confvar = 'conf', lconf = None):
     # run the code
     try:
         exec(code, global_vars, local_vars)
-    except Exception, e:
+    except Exception as e:
         # FIXME: how to get more stack context?
         traceback.print_exc(limit = 10)
         # print traceback
-        print "Error running config code: %s" % (repr(e),)
-        print "Probably causes:\n    missing parentheses or comma\n    dict key followed by , instead of :\nin config"
+        print("Error running config code: %s" % (repr(e),))
+        print("Probably causes:\n    missing parentheses or comma\n    dict "
+              "key followed by , instead of :\nin config")
         sys.exit(1)
 
     # print "get_config_raw_from_string local_vars", local_vars.keys()
@@ -360,7 +362,7 @@ def dict_replace_idstr_recursive(d, cid, xid):
     # if cid is not None:
     # change param 'id' with loop marker and number
     d['params']['id'] = "%s%s%s" % (cid, loop_delim, xid)
-    print "dict_replace_idstr_recursive newid", d['params']['id']
+    print("dict_replace_idstr_recursive newid", d['params']['id'])
 
     # change param 'inputs'
     if d['params'].has_key('inputs'):
@@ -473,7 +475,7 @@ def dict_replace_nodekeyrefs(d, xid, idmap):
                     buskey = "%s/%s" % (idmap[invbuss[0]], invbuss[1])
                     # print "dict_replace_nodekeyrefs: replacing %s with %s in node %s" % (inv['buscopy'], buskey, k_)
                     inv['buscopy'] = buskey
-                print "\n\n\n\n\n\n\noutputs, buscopy", d[k_]['params']
+                print("\n\n\n\n\n\n\noutputs, buscopy", d[k_]['params'])
 
         # fix id references in 'copy' models (want to copy the model from the block with that id)
         if d[k_]['params'].has_key('models'):
@@ -680,8 +682,8 @@ def create_datadir(datadir = None):
     assert datadir is not None, "create_datadir needs a datadir argument"
     try:
         os.mkdir(datadir)
-    except OSError, e:
-        print "Couldn't create datadir = %s with error %s" % (datadir, e)
+    except OSError as e:
+        print("Couldn't create datadir = %s with error %s" % (datadir, e))
         return False
     
     return True
@@ -717,7 +719,7 @@ def check_datadir(conf = {}):
 
 if __name__ == '__main__':
 
-    print "testing function composition"
+    print("testing function composition")
 
     def double(x):
         return x * 2
@@ -729,11 +731,12 @@ if __name__ == '__main__':
         return x - 1
 
     inc_and_double = compose2(double, inc)
-    print "double(inc(10)) = %s" % (inc_and_double(10), )
+    print("double(inc(10)) = %s" % (inc_and_double(10), ))
     
     inc_double_and_dec = compose2(compose2(dec, double), inc)
     inc_double_and_dec(10)
-    print "dec(double(inc(10))) = %s" % (inc_double_and_dec(10), )
+    print("dec(double(inc(10))) = %s" % (inc_double_and_dec(10), ))
     
     inc_double_and_dec = compose(dec, double, inc )
-    print "dec(double(inc(10))) = %s with compose(*functions)" % (inc_double_and_dec(10), )
+    print("dec(double(inc(10))) = %s with compose(*functions)" % (
+        inc_double_and_dec(10), ))

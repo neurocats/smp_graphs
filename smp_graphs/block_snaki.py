@@ -1,5 +1,5 @@
 import tensorflow as tf
-
+# coding=utf8
 from Agent import Agent, Memory, PMemory
 from Environment import SnakeEnvironment as SE
 from Gui import SnakeGui
@@ -16,10 +16,11 @@ logger = logging.getLogger(__name__)
 
 from smp_graphs.block import decStep, decInit, Block2, PrimBlock2
 
+
 class SnakiBlock2(PrimBlock2):
     @decInit()
     def __init__(self, conf, paren, top):
-        PrimBlock2.__init__(self, conf=conf, paren=paren, top = top)
+        PrimBlock2.__init__(self, conf=conf, paren=paren, top=top)
 
         self.N = 200000
         self.hyper = {
@@ -41,7 +42,7 @@ class SnakiBlock2(PrimBlock2):
             "Output": [4, 4],
             "eps": lambda x:
             0.6 * (1 - x / self.N) + 0.15,
-        # * 1 / 2 * (1 + np.cos((2 * np.pi * x * 5) /
+            # * 1 / 2 * (1 + np.cos((2 * np.pi * x * 5) /
             # self.N)) + 0.15,
             "gamma": 0.7,
             "activation": tf.nn.relu,
@@ -123,11 +124,9 @@ class SnakiBlock2(PrimBlock2):
         # learn(snaKI)
 
     @decStep()
-    def step(self, x = None):
-        print "self.cnt", self.cnt
+    def step(self, x=None):
         self.learn(None)
         # "eps": lambda x: 0.7*(1 - (x / float(self.N)) + np.sin(x / (self.N / (17. * 2 * np.pi))) / 10.)
-
 
     def create(self, gui):
         """
@@ -150,10 +149,10 @@ class SnakiBlock2(PrimBlock2):
         logger.info("Start learning process.")
 
         self.snaki.learn(train_len=self.hyper["epoch"],
-                    assign_freq=self.hyper["assign"],
-                    batch=self.hyper["batch"],
-                    restore=not True,
-                    q=self.hyper["q"])
+                         assign_freq=self.hyper["assign"],
+                         batch=self.hyper["batch"],
+                         restore=not True,
+                         q=self.hyper["q"])
 
         # take a look how snaki is doing
         logger.info("Start GUI (autonomously)...")
