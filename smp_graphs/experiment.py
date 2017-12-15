@@ -29,6 +29,11 @@ import pandas as pd
 # for config reading
 from numpy import array
 
+import sys
+import os.path
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+
 from smp_base.common import get_module_logger
 from smp_base.plot import set_interactive, makefig
 
@@ -87,12 +92,14 @@ def get_args():
     """
     # define defaults
     default_conf     = "conf/default.py"
+    # FIXME nur mal so als test
+    default_conf     = "conf/snaki.py"
     default_datadir = 'data'
     default_numsteps = None
-    
+
     # create parser
     parser = argparse.ArgumentParser()
-    
+
     # add commandline arguments
     parser.add_argument("-c", "--conf",       type=str, default=default_conf,     help="Configuration file [%s]" % default_conf)
     parser.add_argument("-d", "--datadir",    type=str, default=default_datadir,  help="Data directory [%s]" % default_datadir)
@@ -128,10 +135,10 @@ def set_config_defaults(conf):
     """
     if not conf['params'].has_key("numsteps"):
         conf['params']['numsteps'] = 100
-        
+
     if not conf['params'].has_key('desc'):
         conf['params']['desc'] = conf['params']['id']
-        
+
     # if conf['params'].has_key('lconf'):
     #     print "set_config_defaults", conf['params']['lconf']
     return conf
@@ -199,7 +206,7 @@ def set_random_seed(args):
     """
     assert hasattr(args, 'conf')
     randseed = 0
-    
+
     conf = get_config_raw(args.conf, confvar = 'conf', fexec = False)
 
     pattern = re.compile('(randseed *= *[0-9]*)')
@@ -231,7 +238,7 @@ def set_random_seed(args):
     # print "m", m
     # print "conf", conf
     # print "randseed", randseed
-        
+
     np.random.seed(randseed)
     return randseed
 
@@ -246,7 +253,7 @@ class Experiment(object):
 
     # global config file parameters
     gparams = ['ros', 'numsteps', 'recurrent', 'debug', 'dim', 'dt', 'showplot', 'saveplot', 'randseed']
-    
+
     def __init__(self, args):
         """Experiment.__init__
 
@@ -281,30 +288,30 @@ class Experiment(object):
 
         logger.info('#' * 80)
         logger.info("experiment.Experiment init with conf = %s" % (self.conf.keys(), ))
-        
+
         # topblock outputs: new types in addition to np.ndarray signals: 'text', 'plot', ...
         for paramkey in ['outputs', 'desc']:
             if self.conf_vars.has_key(paramkey):
                 self.conf['params'][paramkey] = self.conf_vars[paramkey]
                 logger.debug("    vars -> params found %s, %s" % (paramkey, self.conf['params'][paramkey], ))
-        
+
         # fill in missing defaults
         self.conf = set_config_defaults(self.conf)
         # update conf from commandline arguments
         self.conf = set_config_commandline_args(self.conf, args)
 
         # print self.conf['params']['desc']
-        
+
         # initialize ROS if needed
         if self.conf['params']['ros']:
             import rospy
             rospy.init_node("smp_graph")
             self.conf['params']['roscore'] = rospy.core
-            
+
         # store all conf entries in self
         for k, v in self.conf.items():
             setattr(self, k, v)
-            
+
             # selfattr = getattr(self, k)
             # if type(selfattr) is dict:
             #     print "        self.%s = %s\n" % (k, print_dict(selfattr))
@@ -313,7 +320,7 @@ class Experiment(object):
 
         self.conf['params']['cache_clear'] = self.params['cache_clear']
         logger.debug("self.params.keys() = %s", self.params.keys())
-        
+
         # print self.desc
         self.args = args
         """
@@ -333,10 +340,10 @@ class Experiment(object):
 
         # get id from config file name
         self.conf['params']['id'] = make_expr_id()
-        
+
         # cache: update experiments database with the current expr
         xid = self.check_experiments_store(xid = m.hexdigest())
-            
+
         # store md5 in params _after_ we computed the md5 hash
         # set the experiment's id
         # self.conf['params']['id'] = make_expr_id() + "-" + xid
@@ -362,9 +369,9 @@ class Experiment(object):
 
         # FIXME: check / create logging dir in data/experiment-id-and-hash
         if not check_datadir(conf = self.conf['params']):
-            print "Fail creating directories"
+            print("Fail creating directories")
             sys.exit(1)
-        
+
         # instantiate topblock
         self.top = Block2(conf = self.conf, conf_vars = self.conf_vars)
 
@@ -373,7 +380,7 @@ class Experiment(object):
 
     def init_plotgraph(self, args):
         # self.plotgraph_flag = args.plotgraph
-        
+
         if self.conf['params']['plotgraph']:
             self.plotgraph_figures = {}
 
@@ -382,7 +389,7 @@ class Experiment(object):
             self.plotgraph_filename = "%s/%s_%s_%d.%s" % (
                 self.conf['params']['datadir_expr'], self.top.id, 'nxgraph', 1,
                 self.plotgraph_savetype)
-            
+
             self.plotgraph_figures['nxgraph'] = {
                 'type': 'fig',
                 'fig': None,
@@ -399,7 +406,7 @@ class Experiment(object):
             self.plotgraph_filename = "%s/%s_%s_%d.%s" % (
                 self.conf['params']['datadir_expr'], self.top.id, 'bus', 1,
                 self.plotgraph_savetype)
-            
+
             self.plotgraph_figures['bus'] = {
                 'type': 'fig',
                 'fig': None,
@@ -414,7 +421,7 @@ class Experiment(object):
 
             # plotgraph_figures = [
             #     dict([(ik, iv) for ik, iv in v.items() if ik not in ['type', 'fig', 'label']]) for k, v in self.plotgraph_figures.items()]
-            
+
             plotgraph_figures = dict([(k, [fv[k] for fk, fv in self.plotgraph_figures.items()]) for k in ['filename', 'id', 'desc', 'width']])
             logger.debug("plotgraph_figures = %s", plotgraph_figures)
             # copy to outputs for latex figures
@@ -426,7 +433,7 @@ class Experiment(object):
                 'desc': plotgraph_figures['desc'],
                 'width': plotgraph_figures['width'],
             }
-            
+
     def check_experiments_store(self, xid = None):
         """Experiment.check_experiments_store
 
@@ -456,7 +463,7 @@ class Experiment(object):
 
         # check no-cache argument
         if not self.params['docache']: return xid
-        
+
         # prepare experiment database
         self.experiments_store = '%s/experiments_store.h5' % (self.args.datadir, )
         columns = ['id', 'timestamp', 'md5', 'topblock', 'params', 'topblock_nxgraph', 'topblock_bus']
@@ -468,22 +475,23 @@ class Experiment(object):
         # pandas PerformanceWarning type check
         # for k, v in zip(columns, values[0]):
         #     print "    df[%s].type = %s" % (k, type(v))
-        
+
         # print "%s.check_experiments_store values = %s" % (self.__class__.__name__, values)
         # values = [[xid, self.conf['block'], self.conf['params']]]
 
         # print "Experiment.check_experiments_store"
-        
+
         # load experiment database if one exists
         if os.path.exists(self.experiments_store):
             try:
                 self.experiments = pd.read_hdf(self.experiments_store, key = 'experiments')
-                print "    loaded experiments_store = %s with shape = %s" % (
-                    self.experiments_store, self.experiments.shape)
-                
+                print("    loaded experiments_store = %s with shape = %s" %
+                      (self.experiments_store, self.experiments.shape))
+
                 # search for hash
-            except Exception, e:
-                print "    loading store %s failed with %s, continuing without cache" % (self.experiments_store, e)
+            except Exception as e:
+                print("    loading store %s failed with %s, continuing "
+                      "without cache" % (self.experiments_store, e))
                 return xid
                 # sys.exit(1)
         # create a new experiment database if it does not exist
@@ -504,19 +512,21 @@ class Experiment(object):
             df = pd.DataFrame(data = values, columns = columns, index = index)
             dfs = [self.experiments, df]
             # print "dfs", dfs
-        
+
             # concatenated onto main df
             self.experiments = pd.concat(dfs)
             # experiment.cache is the newly created entry
             self.cache = df
-        
+
         # load the cached experiment if it exists
         if self.cache is not None and self.cache.shape[0] != 0:
             # experiment.cache is the loaded entry
-            print "    found cached results = %s\n    %s\n    %s" % (self.cache.shape, '', '') #, self.cache, self.experiments.index)
+            print("    found cached results = %s\n    %s\n    %s" %
+                  (self.cache.shape, '', '')) #self.cache,
+            # elf.experiments.index)
             self.cache_loaded = True
 
-            print "self.params.keys()", self.params.keys()
+            print("self.params.keys()", self.params.keys())
             if self.params['cache_clear']:
                 # print "    cache found, dropping and recreating it", type(self.experiments)
                 # self.experiments.drop(index = [(self.experiments.md5 == xid).argmax()])
@@ -533,7 +543,7 @@ class Experiment(object):
             new_cache_entry(values, columns, index = [self.cache_index + 1])
         # store the experiment in the cache if it doesn't exist
         else:
-            print "    no cached results found, creating new entry"
+            print("    no cached results found, creating new entry")
             # temp dataframe
             # self.experiments.index[-1] + 1
             new_cache_entry(values, columns, index = [self.cache_index + 1])
@@ -543,7 +553,7 @@ class Experiment(object):
 
         # return the hash
         return xid
-        
+
     def plotgraph(self, G = None, Gbus = None, G_cols = None):
         """Experiment.plotgraph
 
@@ -561,7 +571,7 @@ class Experiment(object):
             rows = 1, cols = 3, wspace = 0.1, hspace = 0.1,
             axesspec = axesspec, title = "%s"  % (figtitle, )) # "nxgraph")
         axi = 0
-        
+
         # nxgraph_plot(self.top.nxgraph, ax = fig_nxgr.axes[0])
 
         # # flatten for drawing, quick hack
@@ -581,14 +591,14 @@ class Experiment(object):
         assert G is not None
         # if G is None:
         #     G = self.top.nxgraph
-            
+
         # G_, G_number_of_nodes_total = recursive_hierarchical(G)
         G_ = G
         G_number_of_nodes_total = G_.number_of_nodes()
 
         if G_cols is None:
             G_cols = nxgraph_get_node_colors(G_)
-            
+
         # print "G_cols", G_cols
         nxgraph_plot(G_, ax = fig_nxgr.axes[axi], layout_type = "linear_hierarchical", node_color = G_cols, node_size = 300)
         # nxgraph_plot(G_, ax = fig_nxgr.axes[axi], layout_type = "spring", node_color = G_cols, node_size = 300)
@@ -596,7 +606,7 @@ class Experiment(object):
         axi += 1
         # plotgraph_figures.append(fig_nxgr)
         self.plotgraph_figures['nxgraph']['fig'] = fig_nxgr
-        
+
         # # plot the nested graph
         # recursive_draw(
         #     self.top.nxgraph,
@@ -621,10 +631,10 @@ class Experiment(object):
         bbox.x0 *= 1.2
         bbox.y0 *= 0.7
         ax.set_position(bbox)
-        
+
         ax.table(cellText = params_table.values(), rowLabels = params_table.keys(), loc = 'center')
         axi += 1
-        
+
         assert Gbus is not None
         # if Gbus is None:
         #     Gbus = self.top.bus
@@ -635,10 +645,11 @@ class Experiment(object):
                 rows = 1, cols = 1, wspace = 0.1, hspace = 0.1,
                 axesspec = axesspec, title = "%s"  % (figtitle, ))
 
-            
+
             axi = 0
             (xmax, ymax) = Gbus.plot(fig_bus.axes[axi])
-            print "experiment plotting bus xmax = %s, ymax = %s"  % (xmax, ymax)
+            print("experiment plotting bus xmax = %s, ymax = %s"  %
+                  (xmax, ymax))
             # fig_bus.axes[axi].set_aspect(1)
             fig_bus.set_size_inches((5, ymax / 25.0))
             axi += 1
@@ -678,13 +689,13 @@ class Experiment(object):
             draw.text((10, offset_y + 20), img_figsubtitle, fontcolor, font = font_normal)
 
             # draw bus items
-            
+
             # keys = Gbus.keys()
             # for i, k in enumerate(keys):
             Gbus_items = Gbus.keys_loop_compress()
             Gbus_keys  = Gbus_items.keys()
             Gbus_keys.sort()
-            
+
             # for i, item in enumerate(Gbus_items.items()):
             for i, k in enumerate(Gbus_keys):
                 # k = item[0]
@@ -700,7 +711,7 @@ class Experiment(object):
             self.plotgraph_figures['bus']['fig'] = image
             # filename = re.sub('\.%s' % (savetype, '.jpg', self.plotgraph_figures['bus']['filename']
             # img_resized.save()
-            
+
             # if self.conf['params']['showplot']:
             #     image.show()
 
@@ -725,8 +736,8 @@ class Experiment(object):
                     elif type(fig_) is PIL.Image.Image:
                         fig_.save(filename)
                     else:
-                        print "            watn scheis\n\n\n\n"
-                except Exception, e:
+                        print("            watn scheis\n\n\n\n")
+                except Exception as e:
                     logger.error("Saving experiment graph plot to %s failed with %s" % (filename, e,))
 
     def printgraph_recursive(self, G, lvl = 0):
@@ -735,29 +746,34 @@ class Experiment(object):
         for node in nxgraph_nodes_iter(G, 'enable'):
             if G.node[node].has_key('block_'):
                 # nodedata_key = 'block_'
-                print "%snode = %s" % (indent, G.node[node]['block_'].id, )
+                print("%snode = %s" % (indent, G.node[node]['block_'].id, ))
                 if hasattr(G.node[node]['block_'], 'nxgraph'):
                     G_ = G.node[node]['block_'].nxgraph
                     lvl += 1
-                    print "%sG%d.name = %s" % (indent, lvl, G_.name)
-                    print "%s  .nodes = %s" % (indent, ", ".join([G_.node[n]['params']['id'] for n in G_.nodes()]))
+                    print("%sG%d.name = %s" %
+                          (indent, lvl, G_.name))
+                    print("%s  .nodes = %s" %
+                          (indent, ", ".join([G_.node[n]['params']['id']
+                                              for n in G_.nodes()])
+                           ))
                     self.printgraph_recursive(G = G_, lvl = lvl)
             else:
                 # nodedata_key = 'params'
-                print "%snode = %s" % (indent, G.node[node]['params']['id'], )
+                print("%snode = %s" % (indent, G.node[node]['params']['id'], ))
 
     def printgraph(self, G = None):
-        print "\nPrinting graph\n",
+        print("\nPrinting graph\n",)
         # if G is None:
         #     G = self.top.nxgraph
         assert G is not None
-            
-        print "G.name  = %s" % (G.name,)
+
+        print("G.name  = %s" % (G.name,))
         # print "G.nodes = %s" % ([(G.node[n]['params']['id'], G.node[n].keys()) for n in G.nodes()])
-        print " .nodes = %s" % (", ".join([G.node[n]['params']['id'] for n in G.nodes()]))
+        print(" .nodes = %s" % (", ".join([G.node[n]['params']['id'] for n
+                                           in G.nodes()])))
 
         self.printgraph_recursive(G, lvl = 1)
-            
+
     def run(self):
         """Experiment.run
 
@@ -783,7 +799,7 @@ class Experiment(object):
             # except:
             # pdb.set_trace()
             # FIXME: progress bar / display        
-            
+
         # print "final return value topblock.x = %s" % (topblock_x)
 
         # final writes: log store, experiment/block store?, graphics, models
@@ -795,7 +811,7 @@ class Experiment(object):
             # store the full dynamically expanded state of the toplevel nxgraph
             nxgraph_store(conf = self.conf['params'], G = self.top.nxgraph)
             self.top.bus.store_pickle(conf = self.conf['params'])
-            
+
             # filename = "data/%s_%s.yaml" % (self.top.id, 'nxgraph',)
             # nx.write_yaml(self.top.nxgraph, filename)
             # self.cache['topblock_nxgraph'] = filename
@@ -825,7 +841,7 @@ class Experiment(object):
             Gbus = self.top.bus
 
         # self.printgraph(G = G)
-        
+
         # plot the computation graph and the bus
         set_interactive(True)
         if self.conf['params']['plotgraph']:
@@ -881,7 +897,7 @@ class Experiment(object):
         plot(g2, 'nxgraph_tikz.tex')
 
         # assert g1.get_adjacency() == g2.get_adjacency()
-        
+
 
 class Graphviz(object):
     """Graphviz class
@@ -914,10 +930,10 @@ class Graphviz(object):
 
         # FIXME: make the node and edge finding stuff into recursive functions
         #        to accomodate nesting and loops at arbitrary levels
-        
+
         # pass 1: add the nodes
         for k, v in self.conf['params']['graph'].items():
-            print "k", k, "v", v
+            print("k", k, "v", v)
             blockname = re.sub(r"<smp_graphs.block.*\.(.*) object.*", "\\1", v['block'])
             G.add_node(k, block = blockname)
             if v['params'].has_key('graph'): # hierarchical block containing subgraph
@@ -938,10 +954,10 @@ class Graphviz(object):
                     k_from = lblock['params']['id'] + "/%d" % (i,)
                     G.add_node(k_from, block = blockname)
                     G.add_edge(k, k_from)
-                    
+
             # print "k", k
             # print "v", v
-            
+
         # pass 2: add the edges
         for k, v in self.conf['params']['graph'].items():
             # print "v['params']", v['params']
@@ -951,12 +967,12 @@ class Graphviz(object):
                 # print "G", G[k]
                 k_from = k.split("_")[0]
                 G.add_edge(k_from, k)
-            
+
             # input edges
             if not v['params'].has_key('inputs'): continue
             for inputkey, inputval in v['params']['inputs'].items():
-                print "ink", inputkey
-                print "inv", inputval
+                print("ink", inputkey)
+                print("inv", inputval)
                 # if not inputval.has_key('bus'): continue
                 if inputval.has_key('bus'):
                     # get the buskey for that input
@@ -967,16 +983,16 @@ class Graphviz(object):
                     if inputval['trigger'] not in ['None']:
                         k_from, v_to = inputval['trigger'].split('/')
                         G.add_edge(k_from, k)
-                    
+
         # FIXME: add _loop_ and _containment_ edges with different color
         # print print_dict(pdict = self.conf[7:])
 
         # pass 3: create the layout
 
         nxgraph_plot(G, layout_type = self.layout)
-        
+
         # layout = nxgraph_get_layout(G, self.layout)
-                    
+
         # print G.nodes(data = True)
         # labels = {'%s' % node[0]: '%s' % node[1]['block'] for node in G.nodes(data = True)}
         # print "labels = %s" % labels

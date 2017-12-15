@@ -1,5 +1,8 @@
 
 import sys
+import os.path
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from smp_graphs.experiment import get_args
 from smp_graphs.experiment import Experiment, Graphviz
 # from pyqtgraph.Qt import QtGui, QtCore
@@ -20,7 +23,7 @@ if __name__ == "__main__":
     
     import signal
     def handler(signum, frame):
-        print 'Signal handler called with signal = %s' % (signum, )
+        print('Signal handler called with signal = %s' % (signum, ))
         # al.savelogs()
         # l.isrunning = False
         # if not args.batch:
