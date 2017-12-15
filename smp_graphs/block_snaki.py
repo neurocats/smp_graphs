@@ -22,7 +22,7 @@ class SnakiBlock2(PrimBlock2):
     def __init__(self, conf, paren, top):
         PrimBlock2.__init__(self, conf=conf, paren=paren, top=top)
 
-        self.N = 200000
+        self.N = 20000
         self.hyper = {
             "epoch": self.N,
             "assign": 10000,
@@ -113,22 +113,22 @@ class SnakiBlock2(PrimBlock2):
         )
 
         logger.info("Start GUI")
-        self.gui = SnakeGui(None)
+        self.gui = SnakeGui(self.snaKI)
 
         # Please forgive a little bug. Separate creation from learning:------------
 
         # TODO make both simultaneous possible
 
         logger.info("Do the business")
-        self.create(self.gui)
-        # learn(snaKI)
+        # self.create()
+        self.learn()
 
     @decStep()
     def step(self, x=None):
         self.learn(None)
         # "eps": lambda x: 0.7*(1 - (x / float(self.N)) + np.sin(x / (self.N / (17. * 2 * np.pi))) / 10.)
 
-    def create(self, gui):
+    def create(self):
         """
         Create Memory by human agent via api.
         :param gui: Gui to play in
@@ -144,11 +144,11 @@ class SnakiBlock2(PrimBlock2):
 
         self.mem.save()
 
-    def learn(self, snaki):
+    def learn(self):
         """Let Snaki learn"""
         logger.info("Start learning process.")
 
-        self.snaki.learn(train_len=self.hyper["epoch"],
+        self.snaKI.learn(train_len=self.hyper["epoch"],
                          assign_freq=self.hyper["assign"],
                          batch=self.hyper["batch"],
                          restore=not True,
