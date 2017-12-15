@@ -644,8 +644,7 @@ class decStep():
                 xself.cname, xself.id, k, v['val'].shape, v['shape'])
 
             # copy bus inputs to input buffer
-            if v.has_key(
-                    'bus'):  # input item is driven by external signal (bus value)
+            if v.has_key('bus'):  # input item is driven by external signal (bus value)
                 # exec   blocksize of the input's source node
                 # FIXME: search once and store, recursively over nxgraph and subgraphs
                 blocksize_input = get_blocksize_input(xself.top.nxgraph,
@@ -1871,13 +1870,11 @@ class Block2(object):
         assert v is not None, "init_outputs_ndarray called with output val = None"
 
         # auto-fix shape for buscopy
-        if v.has_key('buscopy') and not v.has_key(
-                'shape') and self.bus.has_key(v['buscopy']):
+        if v.has_key('buscopy') and not v.has_key('shape') and self.bus.has_key(v['buscopy']):
             v['shape'] = self.bus[v['buscopy']].shape
 
         # assert v.keys()[0] in ['shape', 'bus'], "Need 'bus' or 'shape' key in outputs spec of %s" % (self.id, )
-        assert v.has_key(
-            'shape'), "%s-%s's output spec %s needs 'shape' param but has %s " % (
+        assert v.has_key('shape'), "%s-%s's output spec %s needs 'shape' param but has %s " % (
         self.cname, self.id, k, v.keys())
         # if v.has_key('shape'):
         assert len(v[
@@ -2046,8 +2043,7 @@ class Block2(object):
                         # check if key exists or not. if it doesn't, that means this is a block inside dynamical graph construction
                         # print "\nplotblock", self.bus.keys()
 
-                        assert self.bus.has_key(v[
-                                                    'bus']), "Requested by %s-%s, bus item %s is not in buskeys %s" % (
+                        assert self.bus.has_key(v['bus']), "Requested by %s-%s, bus item %s is not in buskeys %s" % (
                         self.cname, self.id, v['bus'], self.bus.keys())
 
                         # enforce bus blocksize smaller than local blocksize, tackle later
@@ -2073,8 +2069,7 @@ class Block2(object):
                 #     if v[0].endswith('.h5'):
                 #         setattr(self, k, v[0])
                 else:
-                    assert v.has_key('bus') or v.has_key(
-                        'val'), "%s-%s's input spec needs either 'bus' or 'val' entry in %s" % (
+                    assert v.has_key('bus') or v.has_key('val'), "%s-%s's input spec needs either 'bus' or 'val' entry in %s" % (
                         self.cname, self.id, v.keys())
                     # expand scalar to vector
                     if np.isscalar(v['val']):
@@ -2130,8 +2125,7 @@ class Block2(object):
     def output_is_triggered(self, k, v, bus):
         # return true if is 'trigger' but trigger bus inactive
         if not v.has_key('trigger'): return True  # False
-        istriggered = v.has_key('trigger') and bus.has_key(
-            v['trigger']) and np.any(bus[v['trigger']] > 0)
+        istriggered = v.has_key('trigger') and bus.has_key(v['trigger']) and np.any(bus[v['trigger']] > 0)
         # return not istriggered
         return istriggered
 
@@ -2312,8 +2306,7 @@ class Block2(object):
         for k, v in [(k_, v_) for k_, v_ in self.outputs.items() if
                      v_.has_key('buscopy')]:
             buskey = v['buscopy']
-            assert self.bus.has_key(
-                buskey), "Assuming in %s-%s that bus has key %s but %s" % (
+            assert self.bus.has_key(buskey), "Assuming in %s-%s that bus has key %s but %s" % (
             self.cname, self.id, buskey, self.bus.keys())
             # if buskey.startswith('b4') and np.mean(self.bus[buskey]) != 0.0: # or 'measure' in buskey:
             #     # , getattr(self, k), self.bus[buskey], self.bus.keys()
@@ -2749,8 +2742,7 @@ class LoopBlock2(Block2):
 
         # sanity check: loop specification
         assert conf['params'].has_key('loop'), "LoopBlock2: loop spec missing"
-        assert conf['params'].has_key(
-            'loopmode'), "LoopBlock2: loopmode missing"
+        assert conf['params'].has_key('loopmode'), "LoopBlock2: loopmode missing"
 
         # unroll loop into dictionary
         conf['params']['subgraph'] = LoopBlock2.subgraph_from_loop_unrolled(
