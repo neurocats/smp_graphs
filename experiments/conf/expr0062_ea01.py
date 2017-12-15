@@ -52,6 +52,7 @@ from numpy import sqrt, mean, square
 from smp_graphs.funcs import f_sin, f_motivation, f_motivation_bin, f_meansquare, f_sum, f_rootmeansquare, f_envelope
 
 from smp_graphs.utils_conf import get_systemblock
+from functools import reduce
 
 # global parameters can be overwritten from the commandline
 ros = False

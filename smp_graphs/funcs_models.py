@@ -36,8 +36,8 @@ from smp_base.measures import meas as measf
 try:
     from smp_base.models_actinf import smpOTLModel, smpSOESGP, smpSTORKGP
     HAVE_SOESGP = True
-except ImportError, e:
-    print "couldn't import online GP models", e
+except ImportError as e:
+    print("couldn't import online GP models", e)
     HAVE_SOESGP = False
 
 # merge with embedding code and move to smp_base
@@ -82,9 +82,9 @@ def init_musig(ref, mref, conf, mconf):
     # params = conf['params']
     params = mconf
     mref.a1 = mconf['a1']
-    for ink, inv in params['inputs'].items():
+    for ink, inv in list(params['inputs'].items()):
     # for ink, inv in params['inputs'].items():
-        print inv
+        print(inv)
         for outk in ["mu", "sig"]:
             # outk_full = "%s/%s_%s" % (mref.modelkey, ink, outk)
             outk_full = "%s_%s" % (ink, outk)
@@ -94,7 +94,7 @@ def init_musig(ref, mref, conf, mconf):
 
 def step_musig(ref, mref, *args, **kwargs):
     # for ink, inv in ref.inputs.items():
-    for ink, inv in mref.mconf['inputs'].items():
+    for ink, inv in list(mref.mconf['inputs'].items()):
         for outk_ in ["mu", "sig"]:
             outk = "%s_%s" % (ink, outk_)
             outv_ = getattr(ref, outk)
@@ -172,7 +172,7 @@ def init_random_lookup(ref, mref, conf, mconf):
     from scipy.stats import norm
     # setup
     params = conf['params']
-    if not mconf.has_key('numelem'):
+    if 'numelem' not in mconf:
         mconf['numelem'] = 1001
     inshape = params['inputs']['x']['shape']
     # logger.debug("init_random_lookup: inshape = %s", inshape)
@@ -275,7 +275,7 @@ def do_random_lookup(ref, mref):
 # model func: random_uniform model
 def init_random_uniform(ref, mref, conf, mconf):
     params = conf['params']
-    for outk, outv in params['outputs'].items():
+    for outk, outv in list(params['outputs'].items()):
         lo = -np.ones(( outv['shape'] ))
         hi = np.ones(( outv['shape'] ))
         setattr(ref, outk, np.random.uniform(lo, hi, size = outv['shape']))
@@ -288,7 +288,7 @@ def step_random_uniform(ref, mref, *args, **kwargs):
             
     lo = ref.inputs['lo']['val'] # .T
     hi = ref.inputs['hi']['val'] # .T
-    for outk, outv in ref.outputs.items():
+    for outk, outv in list(ref.outputs.items()):
         if ref.cnt % (ref.rate * 1) == 0:
             # print ref.__class__.__name__, ref.id, "lo, hi, out shapes", lo.shape, hi.shape, outv['shape']
             setattr(ref, outk, np.random.uniform(lo, hi, size = outv['shape']))
@@ -305,7 +305,7 @@ def step_random_uniform(ref, mref, *args, **kwargs):
 # model func: random_uniform_pi_2 model
 def init_random_uniform_pi_2(ref, conf, mconf):
     params = conf['params']
-    for outk, outv in params['outputs'].items():
+    for outk, outv in list(params['outputs'].items()):
         lo = -np.ones(( outv['shape'] ))
         hi = np.ones(( outv['shape'] ))
         setattr(ref, outk, np.random.uniform(lo, hi, size = outv['shape']))
@@ -320,7 +320,7 @@ def step_random_uniform_pi_2(ref):
     lo = ref.inputs['lo']['val'] # .T
     hi = ref.inputs['hi']['val'] # .T
     meas_l0 = ref.inputs['meas_l0']['val'][...,[-1]]
-    for outk, outv in ref.outputs.items():
+    for outk, outv in list(ref.outputs.items()):
         if ref.cnt % (ref.rate * 1) == 0:
             # pred = np.random.normal(0, 0.05, size = outv['shape'])
             # pred[1,0] = pred[0,0]
@@ -331,9 +331,9 @@ def step_random_uniform_pi_2(ref):
             np.roll(ref.prerr_, -1, axis = 1)
             ref.prerr_[...,[-1]] = prerr.copy()
             pred = ref.pre
-            print "uniform_pi_2 small error", prerr, np.mean(np.abs(ref.prerr_))
+            print("uniform_pi_2 small error", prerr, np.mean(np.abs(ref.prerr_)))
             if np.mean(np.abs(ref.prerr_)) < 0.1:
-                print "uniform_pi_2 small error sampling"
+                print("uniform_pi_2 small error sampling")
                 pred = np.random.normal(meas_l0, scale = np.mean(np.abs(ref.prerr_))) # , size = outv['shape']) # * 1e-3
             else:
                 # pred = np.random.normal(meas_l0, scale = 0.001) # , size = outv['shape']) # * 1e-3
@@ -343,7 +343,7 @@ def step_random_uniform_pi_2(ref):
             
             # pred = np.zeros(outv['shape'])
             setattr(ref, outk, pred)
-            print "step_random_uniform_pi_2 ref.outk", getattr(ref, outk)
+            print("step_random_uniform_pi_2 ref.outk", getattr(ref, outk))
         else:
             setattr(ref, outk, np.random.uniform(-1e-3, 1e-3, size = outv['shape']))
         
@@ -407,7 +407,7 @@ def step_random_uniform_modulated(ref, mref, *args, **kwargs):
     lo = ref.inputs['lo']['val'] # .T
     hi = ref.inputs['hi']['val'] # .T
     mdltr = ref.inputs['mdltr']['val'] # .T
-    refk = ref.outputs.keys()[0]
+    refk = list(ref.outputs.keys())[0]
     mdltr_ref = getattr(mref, 'pre')
     # print "refk", refk, "mdltr_ref", mdltr_ref
     d_raw = mdltr - mdltr_ref
@@ -428,7 +428,7 @@ def step_random_uniform_modulated(ref, mref, *args, **kwargs):
 # model func: alternating_sign model
 def init_alternating_sign(ref, mref, conf, mconf):
     params = conf['params']
-    for outk, outv in params['outputs'].items():
+    for outk, outv in list(params['outputs'].items()):
         lo = -np.ones(( outv['shape'] ))
         hi = np.ones(( outv['shape'] ))
         # setattr(ref, outk, np.random.uniform(lo, hi, size = outv['shape']))
@@ -441,7 +441,7 @@ def step_alternating_sign(ref, mref, *args, **kwargs):
             
     lo = ref.inputs['lo']['val'] # .T
     hi = ref.inputs['hi']['val'] # .T
-    for outk, outv in ref.outputs.items():
+    for outk, outv in list(ref.outputs.items()):
         # setattr(ref, outk, np.random.uniform(lo, hi, size = outv['shape']))
         
         # setattr(ref, outk, np.random.choice([-1.0, 1.0], size = outv['shape']))
@@ -487,7 +487,7 @@ def init_model(ref, mref, conf, mconf):
     """
     # check conf, set defaults
     for required in ['algo', 'idim', 'odim']:
-        if not mconf.has_key(required):
+        if required not in mconf:
             mconf[required] = smpmodel_defaults[required]
             
     # shortcut handles
@@ -497,7 +497,7 @@ def init_model(ref, mref, conf, mconf):
 
     if not HAVE_SOESGP:
         algo = "knn"
-        print "soesgp/storkgp not available, defaulting to knn"
+        print("soesgp/storkgp not available, defaulting to knn")
             
     if algo == "knn":
         # mdl = KNeighborsRegressor(n_neighbors=5)
@@ -510,11 +510,11 @@ def init_model(ref, mref, conf, mconf):
     elif algo == "hebbsom":
         # mconf.update({'numepisodes': 1, 'mapsize_e': 140, 'mapsize_p': 60, 'som_lr': 1e-1, 'visualize': False})
         mconf.update({'numepisodes': 1, 'mapsize_e': 40, 'mapsize_p': 100, 'som_lr': 1e-0, 'som_nhs': 0.05, 'visualize': False})
-        print "mconf", mconf
+        print("mconf", mconf)
         mdl = smpHebbianSOM(conf = mconf)
         # mdl = smpHebbianSOM(idim, odim, numepisodes = 1, mapsize_e = 1000, mapsize_p = 100, som_lr = 1e-1)
     elif algo == "soesgp":
-        print "soesgp conf", mconf
+        print("soesgp conf", mconf)
         mdl = smpSOESGP(conf = mconf)
     elif algo == "storkgp":
         mdl = smpSTORKGP(conf = mconf)
@@ -538,7 +538,7 @@ def init_model(ref, mref, conf, mconf):
         #         ref.top.nxgraph.node[0]['block_'].nxgraph.node[n]['block_'].nxgraph.nodes(), )
             
         targetnode = nxgraph_node_by_id_recursive(ref.top.nxgraph, targetid)
-        print "targetid", targetid, "targetnode", targetnode
+        print("targetid", targetid, "targetnode", targetnode)
         if len(targetnode) > 0:
             # print "    targetnode id = %d, node = %s" % (
             #     targetnode[0][0],
@@ -550,7 +550,7 @@ def init_model(ref, mref, conf, mconf):
     elif algo == 'homeokinesis':
         mdl = HK(conf = mconf)
     else:
-        print "unknown model algorithm %s, exiting" % (algo, )
+        print("unknown model algorithm %s, exiting" % (algo, ))
         # import sys
         # sys.exit(1)
         mdl = None
@@ -573,7 +573,7 @@ def tapping_SM(ref, mode = 'm1'):
     """
     
     # current goal[t] prediction descending from layer above
-    if ref.inputs.has_key('blk_mode') and ref.inputs['blk_mode']['val'][0,0] == 2.0:
+    if 'blk_mode' in ref.inputs and ref.inputs['blk_mode']['val'][0,0] == 2.0:
         # that's a wild HACK for switching the top down goal input of the current predictor
         ref.pre_l1_inkey = 'e2p_l1'
     else:
@@ -599,14 +599,14 @@ def tapping_SM(ref, mode = 'm1'):
     pre_l1_tap_flat = pre_l1_tap_full.reshape((-1, 1))
 
     # target
-    pre_l1_tap_full_target = ref.inputs[ref.pre_l1_inkey]['val'][...,range(-ref.laglen_future - 1, -1)]
+    pre_l1_tap_full_target = ref.inputs[ref.pre_l1_inkey]['val'][...,list(range(-ref.laglen_future - 1, -1))]
     pre_l1_tap_flat_target = pre_l1_tap_full_target.reshape((-1, 1))
 
     # meas
     meas_l0_tap_spec = ref.inputs['meas_l0']['lag']
     meas_l0_tap_full = ref.inputs['meas_l0']['val'][...,meas_l0_tap_spec]
     meas_l0_tap_flat = meas_l0_tap_full.reshape((ref.odim, 1))
-    meas_l0_tap_full_input = ref.inputs['meas_l0']['val'][...,range(-ref.laglen_past, 0)]
+    meas_l0_tap_full_input = ref.inputs['meas_l0']['val'][...,list(range(-ref.laglen_past, 0))]
     meas_l0_tap_flat_input = meas_l0_tap_full_input.reshape((-1, 1))
 
     # pre_l0
@@ -826,7 +826,7 @@ def step_actinf(ref, mref, *args, **kwargs):
         # prerr = prerr_l0_.reshape((ref.odim / ref.laglen, -1))[...,[-1]]
         # FIXME: actually, if ref.mdl.hasmemory
         if isinstance(ref.mdl, smpOTLModel) or isinstance(ref.mdl, smpSHL):
-            print "Fitting without update"
+            print("Fitting without update")
             ref.mdl.fit(X.T, Y.T, update = False)
         else:
             ref.mdl.fit(X.T, Y.T)
@@ -1099,8 +1099,8 @@ def step_homeokinesis(ref, mref, *args, **kwargs):
 # sklearn based model
 def init_sklearn(ref, mref, conf, mconf):
     # insert defaults
-    assert mconf.has_key('skmodel')
-    assert mconf.has_key('skmodel_params')
+    assert 'skmodel' in mconf
+    assert 'skmodel_params' in mconf
     # sklearn models are saveable with pickle
     mref.saveable = True
     # check mconf
@@ -1151,7 +1151,7 @@ def load_sklearn(ref, mref):
         try:
             mref.mdl = joblib.load(modelfilenamefull)
             mref.mdl_init = True
-        except Exception, e:
+        except Exception as e:
             ref._error('load_sklearn failed with %s' % (e, ))
     
 def save_sklearn(ref, mref):
@@ -1182,7 +1182,7 @@ def step_e2p(ref):
 
     # if ref.inputs['blk_mode']['val'] == 2.0:
     # if True:
-    if ref.inputs.has_key('blk_mode') and ref.inputs['blk_mode']['val'][0,0] == 2.0:
+    if 'blk_mode' in ref.inputs and ref.inputs['blk_mode']['val'][0,0] == 2.0:
         if ref.cnt % 400 == 0:
             # uniform prior
             # extero_ = np.random.uniform(-1e-1, 1e-1, extero.shape)
@@ -1206,19 +1206,19 @@ def tapping_imol_pre_inv(ref):
     # most recent top-down prediction on the input
     pre_l1 = ref.inputs['pre_l1']['val'][
         ...,
-        range(
+        list(range(
             ref.lag_past_inv[0] + ref.lag_off_f2p_inv,
-            ref.lag_past_inv[1] + ref.lag_off_f2p_inv)].copy()
+            ref.lag_past_inv[1] + ref.lag_off_f2p_inv))].copy()
 
     # most recent state measurements
     meas_l0 = ref.inputs['meas_l0']['val'][
         ...,
-        range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv)].copy()
+        list(range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv))].copy()
     
     # most 1-recent pre_l1/meas_l0 errors
     prerr_l0 = ref.inputs['prerr_l0']['val'][
         ...,
-        range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv)].copy()
+        list(range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv))].copy()
     # momentary pre_l1/meas_l0 error
     prerr_l0 = np.roll(prerr_l0, -1, axis = -1)
     # FIXME: get full tapping
@@ -1240,20 +1240,20 @@ def tapping_imol_fit_inv(ref):
     # most recent goal top-down prediction as input
     pre_l1 = ref.inputs['meas_l0']['val'][
         ...,
-        range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv)].copy()
+        list(range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv))].copy()
     # corresponding starting state k steps in the past
     meas_l0 = ref.inputs['meas_l0']['val'][
         ...,
-        range(ref.lag_past_inv[0], ref.lag_past_inv[1])].copy()
+        list(range(ref.lag_past_inv[0], ref.lag_past_inv[1]))].copy()
     # corresponding error k steps in the past, 1-delay for recurrent
     prerr_l0 = ref.inputs['prerr_l0']['val'][
         ...,
-        range(ref.lag_past_inv[0] + rate, ref.lag_past_inv[1] + rate)].copy()
+        list(range(ref.lag_past_inv[0] + rate, ref.lag_past_inv[1] + rate))].copy()
     # Y
     # corresponding output k steps in the past, 1-delay for recurrent
     pre_l0 = ref.inputs['pre_l0']['val'][
         ...,
-        range(ref.lag_future_inv[0] - ref.lag_off_f2p_inv + rate, ref.lag_future_inv[1] - ref.lag_off_f2p_inv + rate)].copy()
+        list(range(ref.lag_future_inv[0] - ref.lag_off_f2p_inv + rate, ref.lag_future_inv[1] - ref.lag_off_f2p_inv + rate))].copy()
     # range(ref.lag_future_inv[0], ref.lag_future_inv[1])].copy()
     
     return {
@@ -1275,24 +1275,24 @@ def tapping_imol_recurrent_fit_inv(ref):
 
     prerr_l0 = ref.inputs['prerr_l0']['val'][
         ...,
-        range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv)].copy()
+        list(range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv))].copy()
     
     if ref.cnt < ref.thr_predict:
         # take current state measurement
         pre_l1 = ref.inputs['meas_l0']['val'][
             ...,
-            range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv)].copy()
+            list(range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv))].copy()
         # add noise (input exploration)
         pre_l1 += np.random.normal(0.0, 1.0, pre_l1.shape) * 0.01
     else:
         # take top-down prediction
         pre_l1_1 = ref.inputs['pre_l1']['val'][
             ...,
-            range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv)].copy()
+            list(range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv))].copy()
         # and current state
         pre_l1_2 = ref.inputs['meas_l0']['val'][
             ...,
-            range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv)].copy()
+            list(range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv))].copy()
         mdltr = np.square(max(0, 1.0 - np.mean(np.abs(prerr_l0))))
         # print "mdltr", mdltr
         # explore input around current state depending on pe state
@@ -1301,7 +1301,7 @@ def tapping_imol_recurrent_fit_inv(ref):
     # most recent measurements
     meas_l0 = ref.inputs['meas_l0']['val'][
         ...,
-        range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv)].copy()
+        list(range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv))].copy()
 
     # update prediction errors
     prerr_l0 = np.roll(prerr_l0, -1, axis = -1)
@@ -1311,7 +1311,7 @@ def tapping_imol_recurrent_fit_inv(ref):
     # FIXME check - 1?
     pre_l0 = ref.inputs['pre_l0']['val'][
         ...,
-        range(ref.lag_future_inv[0] - ref.lag_off_f2p_inv, ref.lag_future_inv[1] - ref.lag_off_f2p_inv)].copy()
+        list(range(ref.lag_future_inv[0] - ref.lag_off_f2p_inv, ref.lag_future_inv[1] - ref.lag_off_f2p_inv))].copy()
     # range(ref.lag_future_inv[0] - ref.lag_off_f2p_inv + rate, ref.lag_future_inv[1] - ref.lag_off_f2p_inv + rate)].copy()
 
     # print "tapping_imol_recurrent_fit_inv shapes", pre_l1.shape, meas_l0.shape, prerr_l0.shape, pre_l0.shape
@@ -1335,15 +1335,15 @@ def tapping_imol_recurrent_fit_inv_2(ref):
 
     pre_l1 = ref.inputs['meas_l0']['val'][
         ...,
-        range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv)].copy()
+        list(range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv))].copy()
     
     meas_l0 = ref.inputs['meas_l0']['val'][
         ...,
-        range(ref.lag_past_inv[0], ref.lag_past_inv[1])].copy()
+        list(range(ref.lag_past_inv[0], ref.lag_past_inv[1]))].copy()
     
     prerr_l0 = ref.inputs['prerr_l0']['val'][
         ...,
-        range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv)].copy()
+        list(range(ref.lag_past_inv[0] + ref.lag_off_f2p_inv, ref.lag_past_inv[1] + ref.lag_off_f2p_inv))].copy()
     # range(ref.lag_past_inv[0] + rate, ref.lag_past_inv[1] + rate)]
     prerr_l0 = np.roll(prerr_l0, -1, axis = -1)
     prerr_l0[...,[-1]] = pre_l1[...,[-1]] - meas_l0[...,[-1]]
@@ -1352,7 +1352,7 @@ def tapping_imol_recurrent_fit_inv_2(ref):
     # Y
     pre_l0 = ref.inputs['pre_l0']['val'][
         ...,
-        range(ref.lag_future_inv[0] - ref.lag_off_f2p_inv, ref.lag_future_inv[1] - ref.lag_off_f2p_inv)].copy()
+        list(range(ref.lag_future_inv[0] - ref.lag_off_f2p_inv, ref.lag_future_inv[1] - ref.lag_off_f2p_inv))].copy()
     # range(ref.lag_future_inv[0] - ref.lag_off_f2p_inv + rate, ref.lag_future_inv[1] - ref.lag_off_f2p_inv + rate)].copy()
     
     return {
@@ -1401,7 +1401,7 @@ def init_imol(ref, mref, conf, mconf):
     ref.selsize = params['outputs']['hidden']['shape'][0]
     # hidden state output random projection
     ref.hidden_output_index = np.random.choice(
-        range(mconf_inv['modelsize']), ref.selsize, replace=False)
+        list(range(mconf_inv['modelsize'])), ref.selsize, replace=False)
     
     if isinstance(ref.mdl_inv, smpOTLModel) or isinstance(ref.mdl_inv, smpSHL):
         ref.recurrent = True
@@ -1531,7 +1531,7 @@ def step_imol(ref, mref, *args, **kwargs):
         # amp = 0.0
         
         if ref.cnt % 100 == 0:
-            print "soesgp var", ref.mdl_inv.var, ref.cnt # np.sqrt(np.mean(ref.mdl_inv.var))
+            print("soesgp var", ref.mdl_inv.var, ref.cnt) # np.sqrt(np.mean(ref.mdl_inv.var))
         
         # if np.sqrt(np.mean(ref.mdl_inv.var)) < 0.4:
         #     pre_l0_var = np.random.normal(0.0, 1.0, size = pre_l0.shape) * 0.1
@@ -1588,7 +1588,7 @@ def step_imol(ref, mref, *args, **kwargs):
     # print "%s.step_imol pre_l0 = %s, prerr_avg = %s" % (ref.__class__.__name__, pre_l0, ref.prerr_avg)
     
     if ref.cnt % 100 == 0:
-        print "%s.step_imol prerr_avg = %s" % (ref.__class__.__name__, ref.prerr_inv_rms_avg)
+        print("%s.step_imol prerr_avg = %s" % (ref.__class__.__name__, ref.prerr_inv_rms_avg))
 
     # print "ref.laglen_future_inv", ref.laglen_future_inv
     if ref.laglen_future_inv > 1: # n-step prediction
@@ -1633,9 +1633,9 @@ def init_eh(ref, mref, conf, mconf):
     """
 
     
-    print "ModelBlock2.model.init_eh mconf = {"
-    for k, v in mconf.items():
-        print "   %s = %s" % (k,v)
+    print("ModelBlock2.model.init_eh mconf = {")
+    for k, v in list(mconf.items()):
+        print("   %s = %s" % (k,v))
     # print "mconf.eta", mconf['eta']
     # print "mconf.eta_init", mconf['eta_init']
     
@@ -1701,7 +1701,7 @@ def init_eh(ref, mref, conf, mconf):
     ref.selsize = params['outputs']['hidden']['shape'][0]
     # hidden state output random projection
     ref.hidden_output_index = np.random.choice(
-        range(mconf['modelsize']), ref.selsize, replace=False)
+        list(range(mconf['modelsize'])), ref.selsize, replace=False)
     # initialize tapping (devmdl)
     ref.tapping_SM = partial(tapping_SM, mode = ref.type)
     ref.tapping_EH = partial(tapping_EH)
@@ -1743,9 +1743,9 @@ def step_eh(ref, mref, *args, **kwargs):
         # # this also works because goals change slowly
         # pre_l1 = ref.inputs['pre_l1']['val'][...,range(ref.lag_future[0] - 1, ref.lag_future[1] - 1)]
         # future - lag offset
-        pre_l1 = ref.inputs['pre_l1']['val'][...,range(ref.lag_future[0] - ref.lag_off, ref.lag_future[1] - ref.lag_off)]
+        pre_l1 = ref.inputs['pre_l1']['val'][...,list(range(ref.lag_future[0] - ref.lag_off, ref.lag_future[1] - ref.lag_off))]
         # pre_l1 = ref.inputs['pre_l1']['val'][...,range(ref.lag_past[0]-1, ref.lag_past[1]-1)]
-        meas_l0 = ref.inputs['meas_l0']['val'][...,range(ref.lag_future[0], ref.lag_future[1])]
+        meas_l0 = ref.inputs['meas_l0']['val'][...,list(range(ref.lag_future[0], ref.lag_future[1]))]
         return(pre_l1, meas_l0)
 
     (pre_l1_t, meas_l0_t) = tapping_EH_target(ref)
@@ -1754,8 +1754,8 @@ def step_eh(ref, mref, *args, **kwargs):
         # pre_l1 = ref.inputs['pre_l1']['val'][...,np.array(ref.inputs['meas_l0']['lag'])-1]
         # meas_l0 = ref.inputs['meas_l0']['val'][...,ref.inputs['meas_l0']['lag']]
         lag_error = (-100, 0)
-        pre_l1 = ref.inputs['pre_l1']['val'][...,range(lag_error[0]-1, lag_error[1]-1)]
-        meas_l0 = ref.inputs['meas_l0']['val'][...,range(lag_error[0], lag_error[1])]
+        pre_l1 = ref.inputs['pre_l1']['val'][...,list(range(lag_error[0]-1, lag_error[1]-1))]
+        meas_l0 = ref.inputs['meas_l0']['val'][...,list(range(lag_error[0], lag_error[1]))]
         # meas_l0
         return(pre_l1, meas_l0)
 
@@ -1876,7 +1876,7 @@ def step_eh(ref, mref, *args, **kwargs):
     setattr(ref, 'hidden', hidden)
 
     if ref.cnt % 500 == 0:
-        print "iter[%d]: |W_o| = %f, eta = %f" % (ref.cnt, np.linalg.norm(ref.mdl.model.wo), ref.mdl.eta, )
+        print("iter[%d]: |W_o| = %f, eta = %f" % (ref.cnt, np.linalg.norm(ref.mdl.model.wo), ref.mdl.eta, ))
     
     # return to execute prediction on system and wait for new measurement
 
@@ -1981,8 +1981,8 @@ class model(object):
         mconf_.update(mconf)
         mconf.update(mconf_)
         
-        assert mconf['type'] in self.models.keys(), "in %s.init: unknown model type, %s not in %s" % (self.__class__.__name__, mconf['type'], self.models.keys())
-        assert 'numelem' in mconf.keys(), "in %s.init: %s not in mconf %s" % (self.__class__.__name__, 'numelem', mconf.keys())
+        assert mconf['type'] in list(self.models.keys()), "in %s.init: unknown model type, %s not in %s" % (self.__class__.__name__, mconf['type'], list(self.models.keys()))
+        assert 'numelem' in list(mconf.keys()), "in %s.init: %s not in mconf %s" % (self.__class__.__name__, 'numelem', list(mconf.keys()))
         # FIXME: ignoring multiple entries taking 'last' one, in dictionary order
         if mref is None:
             mref = self.__class__.__name__
@@ -2009,14 +2009,14 @@ class model(object):
         #         ref.top.datadir_expr, ref.id, self.modelstr, self.modelkey, self.mconf['skmodel'], ref.md5)
 
     def load(self, ref):
-        if hasattr(self, 'saveable') and self.saveable and self.models[self.modelstr].has_key('load'):
+        if hasattr(self, 'saveable') and self.saveable and 'load' in self.models[self.modelstr]:
             ref._info("Trying to load model %s from file %s" % (self.modelstr, self.modelfilename))
             self.models[self.modelstr]['load'](ref, self)
             
     def save(self, ref):
         """Dump the model into a file
         """
-        if hasattr(self, 'saveable') and self.saveable and not self.mdl_init and self.models[self.modelstr].has_key('save'):
+        if hasattr(self, 'saveable') and self.saveable and not self.mdl_init and 'save' in self.models[self.modelstr]:
             ref._info("Saving model %s into file %s" % (self.modelstr, self.modelfilename))
             self.models[self.modelstr]['save'](ref, self)
         

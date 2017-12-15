@@ -175,7 +175,7 @@ loop = [('lconf', {
         },
 }) for i in range(numloop)]
 
-print "loop", loop
+print("loop", loop)
     
 loopblock = {
     'block': Block2,
